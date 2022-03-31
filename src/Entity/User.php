@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -16,21 +17,35 @@ class User
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({
+     *     "default"
+     * })
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=30)
+     * @Groups({
+     *     "default",
+     *     "user.write"
+     * })
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=30)
+     * @Groups({
+     *     "default",
+     *     "user.write"
+     * })
      */
     private $email;
 
     /**
      * @ORM\ManyToMany(targetEntity=Group::class, inversedBy="users")
+     * @Groups({
+     *     "default"
+     * })
      */
     private $groups;
 
@@ -76,18 +91,18 @@ class User
         return $this->groups;
     }
 
-    public function addGroup(Group $grup): self
+    public function addGroup(Group $group): self
     {
-        if (!$this->groups->contains($grup)) {
-            $this->groups[] = $grup;
+        if (!$this->groups->contains($group)) {
+            $this->groups[] = $group;
         }
 
         return $this;
     }
 
-    public function removeGroup(Group $grup): self
+    public function removeGroup(Group $group): self
     {
-        $this->groups->removeElement($grup);
+        $this->groups->removeElement($group);
 
         return $this;
     }
