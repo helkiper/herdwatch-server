@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Group;
 use App\Entity\User;
 use App\Service\ApiResourceCrudHandler;
 use Doctrine\ORM\EntityManagerInterface;
@@ -64,7 +65,7 @@ class UserController extends AbstractController
      */
     public function list(): JsonResponse
     {
-        return $this->handler->list(User::class);
+        return $this->handler->list(User::class, 'user');
     }
 
     /**
@@ -95,7 +96,7 @@ class UserController extends AbstractController
      */
     public function getItem(int $id): JsonResponse
     {
-        return $this->handler->get(User::class, $id);
+        return $this->handler->get(User::class, 'user', $id);
     }
 
     /**
@@ -125,7 +126,7 @@ class UserController extends AbstractController
      */
     public function create(Request $request): JsonResponse
     {
-        return $this->handler->create(User::class, 'user.write', $request);
+        return $this->handler->create(User::class, 'user', $request);
     }
 
     /**
@@ -168,7 +169,7 @@ class UserController extends AbstractController
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        return $this->handler->update(User::class, $request, $id);
+        return $this->handler->update(User::class, 'user', $request, $id);
     }
 
     /**
@@ -199,5 +200,131 @@ class UserController extends AbstractController
     public function delete(int $id): Response
     {
         return $this->handler->delete(User::class, $id);
+    }
+
+    /**
+     * @Route("/api/user/attach/{userId}/{groupId}", methods={"PATCH"})
+     * @OA\Parameter(
+     *     name="userId",
+     *     in="path",
+     *     description="ID of user",
+     *     required=true,
+     *     @OA\Schema(type="integer")
+     * )
+     * @OA\Parameter(
+     *     name="groupId",
+     *     in="path",
+     *     description="ID of group",
+     *     required=true,
+     *     @OA\Schema(type="integer")
+     * )
+     * @OA\Response(
+     *     response=200,
+     *     description="user",
+     *     @OA\JsonContent(ref=@Model(type=User::class, groups={"default"}))
+     * )
+     * @OA\Response(
+     *     response=404,
+     *     description="if user or group not found",
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="message", example={"message": "User not found"})
+     *     )
+     * )
+     * @OA\Tag(name="Users")
+     *
+     * @param int $userId
+     * @param int $groupId
+     * @return JsonResponse
+     */
+    public function attach(int $userId, int $groupId): JsonResponse
+    {
+        $user = $this->entityManager->getRepository(User::class)->find($userId);
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'user not found'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $group = $this->entityManager->getRepository(Group::class)->find($groupId);
+        if (!$group instanceof Group) {
+            return new JsonResponse(
+                ['message' => 'group not found'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $group->addUser($user);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            $this->serializer->serialize($user, 'json', ['groups' => 'user']),
+            Response::HTTP_OK,
+            [],
+            true
+        );
+    }
+
+    /**
+     * @Route("/api/user/detach/{userId}/{groupId}", methods={"PATCH"})
+     * @OA\Parameter(
+     *     name="userId",
+     *     in="path",
+     *     description="ID of user",
+     *     required=true,
+     *     @OA\Schema(type="integer")
+     * )
+     * @OA\Parameter(
+     *     name="groupId",
+     *     in="path",
+     *     description="ID of group",
+     *     required=true,
+     *     @OA\Schema(type="integer")
+     * )
+     * @OA\Response(
+     *     response=200,
+     *     description="user",
+     *     @OA\JsonContent(ref=@Model(type=User::class, groups={"default"}))
+     * )
+     * @OA\Response(
+     *     response=404,
+     *     description="if user or group not found",
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="message", example={"message": "User not found"})
+     *     )
+     * )
+     * @OA\Tag(name="Users")
+     *
+     * @param int $userId
+     * @param int $groupId
+     * @return JsonResponse
+     */
+    public function detach(int $userId, int $groupId): JsonResponse
+    {
+        $user = $this->entityManager->getRepository(User::class)->find($userId);
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'user not found'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $group = $this->entityManager->getRepository(Group::class)->find($groupId);
+        if (!$group instanceof Group) {
+            return new JsonResponse(
+                ['message' => 'group not found'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $group->removeUser($user);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            $this->serializer->serialize($user, 'json', ['groups' => 'user']),
+            Response::HTTP_OK,
+            [],
+            true
+        );
     }
 }

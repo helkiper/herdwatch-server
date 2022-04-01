@@ -6,7 +6,9 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use OpenApi\Annotations as OA;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -17,26 +19,40 @@ class User
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @OA\Property(type="integer")
      * @Groups({
-     *     "default"
+     *     "default",
+     *     "user",
+     *     "group"
      * })
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=30)
+     * @OA\Property(type="string", maxLength=30)
+     * @Assert\NotBlank
+     * @Assert\Length(max=30)
      * @Groups({
      *     "default",
-     *     "user.write"
+     *     "user",
+     *     "user.create",
+     *     "group"
      * })
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=30)
+     * @OA\Property(type="string", maxLength=30)
+     * @Assert\NotBlank
+     * @Assert\Length(max=30)
+     * @Assert\Email
      * @Groups({
      *     "default",
-     *     "user.write"
+     *     "user",
+     *     "user.create",
+     *     "group"
      * })
      */
     private $email;
@@ -44,7 +60,8 @@ class User
     /**
      * @ORM\ManyToMany(targetEntity=Group::class, inversedBy="users")
      * @Groups({
-     *     "default"
+     *     "default",
+     *     "user"
      * })
      */
     private $groups;

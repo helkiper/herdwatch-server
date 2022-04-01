@@ -64,7 +64,7 @@ class GroupController extends AbstractController
      */
     public function list(): JsonResponse
     {
-        return $this->handler->list(Group::class);
+        return $this->handler->list(Group::class, 'group');
     }
 
     /**
@@ -95,7 +95,7 @@ class GroupController extends AbstractController
      */
     public function getItem(int $id): JsonResponse
     {
-        return $this->handler->get(Group::class, $id);
+        return $this->handler->get(Group::class, 'group', $id);
     }
 
     /**
@@ -124,7 +124,7 @@ class GroupController extends AbstractController
      */
     public function create(Request $request): JsonResponse
     {
-        return $this->handler->create(Group::class, 'group.write', $request);
+        return $this->handler->create(Group::class, 'group', $request);
     }
 
     /**
@@ -139,7 +139,7 @@ class GroupController extends AbstractController
      * @OA\RequestBody(
      *     description="group to update data",
      *     @OA\JsonContent(
-     *          ref=@Model(type=Group::class, groups={"group.write"}),
+     *          ref=@Model(type=Group::class, groups={"group"}),
      *          example={
      *              "name": "group 1"
      *          }
@@ -166,7 +166,7 @@ class GroupController extends AbstractController
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        return $this->handler->update(Group::class, $request, $id);
+        return $this->handler->update(Group::class, 'group', $request, $id);
     }
 
     /**

@@ -6,7 +6,10 @@ use App\Repository\GroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Annotations as OA;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=GroupRepository::class)
@@ -18,25 +21,35 @@ class Group
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @OA\Property(type="integer")
      * @Groups({
-     *      "default"
+     *     "default",
+     *     "group",
+     *     "user"
      * })
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=50)
+     * @Assert\NotNull
+     * @Assert\Length(max=50)
+     * @OA\Property(type="string", maxLength=50)
      * @Groups({
      *     "default",
-     *     "group.write"
+     *     "group",
+     *     "group.create",
+     *     "user"
      * })
      */
     private $name;
 
     /**
      * @ORM\ManyToMany(targetEntity=User::class, mappedBy="groups")
+     * @OA\Property(type="array", @OA\Items(ref=@Model(type=User::class)))
      * @Groups({
-     *      "default"
+     *     "default",
+     *     "group"
      * })
      */
     private $users;
