@@ -47,10 +47,15 @@ class UserController extends AbstractController
         $this->handler = $handler;
     }
 
-    //todo response examples
-
     /**
      * @Route("/api/user", methods={"GET"})
+     * @OA\Parameter(
+     *     name="groupId",
+     *     in="query",
+     *     description="ID of group",
+     *     required=false,
+     *     @OA\Schema(type="integer")
+     * )
      * @OA\Response(
      *     response=200,
      *     description="List of users",
@@ -61,11 +66,16 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        return $this->handler->list(User::class, 'user');
+        $searchParams = $request->query->has('groupId')
+            ? ['groupId' => $request->query->get('groupId')]
+            : [];
+
+        return $this->handler->list(User::class, 'user', $searchParams);
     }
 
     /**
@@ -119,6 +129,13 @@ class UserController extends AbstractController
      *          ref=@Model(type=User::class, groups={"default"})
      *     )
      * )
+     * @OA\Response(
+     *     response=400,
+     *     description="Validation error",
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="message", example={"message": "some constraint violation"})
+     *     )
+     * )
      * @OA\Tag(name="Users")
      *
      * @param Request $request
@@ -153,6 +170,13 @@ class UserController extends AbstractController
      *     response=200,
      *     description="user",
      *     @OA\JsonContent(ref=@Model(type=User::class, groups={"default"}))
+     * )
+     * @OA\Response(
+     *     response=400,
+     *     description="Validation error",
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="message", example={"message": "some constraint violation"})
+     *     )
      * )
      * @OA\Response(
      *     response=404,

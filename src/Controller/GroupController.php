@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Group;
 use App\Service\ApiResourceCrudHandler;
-use Doctrine\ORM\EntityManagerInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,41 +11,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 
 class GroupController extends AbstractController
 {
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
     /**
      * @var ApiResourceCrudHandler
      */
     private $handler;
 
     /**
-     * @param SerializerInterface $serializer
-     * @param EntityManagerInterface $entityManager
      * @param ApiResourceCrudHandler $handler
      */
-    public function __construct(
-        SerializerInterface $serializer,
-        EntityManagerInterface $entityManager,
-        ApiResourceCrudHandler $handler
-    ) {
-        $this->serializer = $serializer;
-        $this->entityManager = $entityManager;
+    public function __construct(ApiResourceCrudHandler $handler)
+    {
         $this->handler = $handler;
     }
-
-    //todo response examples
 
     /**
      * @Route("/api/group", methods={"GET"})
@@ -117,6 +96,13 @@ class GroupController extends AbstractController
      *          ref=@Model(type=Group::class, groups={"default"})
      *     )
      * )
+     * @OA\Response(
+     *     response=400,
+     *     description="Validation error",
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="message", example={"message": "some constraint violation"})
+     *     )
+     * )
      * @OA\Tag(name="Groups")
      *
      * @param Request $request
@@ -150,6 +136,13 @@ class GroupController extends AbstractController
      *     response=200,
      *     description="group",
      *     @OA\JsonContent(ref=@Model(type=Group::class, groups={"default"}))
+     * )
+     * @OA\Response(
+     *     response=400,
+     *     description="Validation error",
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="message", example={"message": "some constraint violation"})
+     *     )
      * )
      * @OA\Response(
      *     response=404,

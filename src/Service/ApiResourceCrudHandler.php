@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Filter\FilterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,28 +31,44 @@ class ApiResourceCrudHandler
     private $validator;
 
     /**
+     * @var iterable
+     */
+    private iterable $filters;
+
+    /**
      * @param SerializerInterface $serializer
      * @param EntityManagerInterface $entityManager
      * @param ValidatorInterface $validator
+     * @param iterable $filters
      */
     public function __construct(
         SerializerInterface $serializer,
         EntityManagerInterface $entityManager,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        iterable $filters
     ) {
         $this->serializer = $serializer;
         $this->entityManager = $entityManager;
         $this->validator = $validator;
+        $this->filters = $filters;
     }
 
     /**
      * @param string $entityClass
      * @param string $serializationGroup
+     * @param array $searchParams
      * @return JsonResponse
      */
-    public function list(string $entityClass, string $serializationGroup): JsonResponse
+    public function list(string $entityClass, string $serializationGroup, array $searchParams = []): JsonResponse
     {
-        $entities = $this->entityManager->getRepository($entityClass)->findAll();
+        $queryBuilder = $this->entityManager->getRepository($entityClass)->createQueryBuilder('e');
+        /** @var FilterInterface $filter */
+        foreach ($this->filters as $filter) {
+            if ($filter->support($queryBuilder, $searchParams)) {
+                $filter->processQueryBuilder($queryBuilder, $searchParams);
+            }
+        }
+        $entities = $queryBuilder->getQuery()->getResult();
 
         return new JsonResponse(
             $this->serializer->serialize($entities, 'json', ['groups' => $serializationGroup]),
@@ -115,7 +132,7 @@ class ApiResourceCrudHandler
         $this->entityManager->flush();
 
         return new JsonResponse(
-            $this->serializer->serialize($entity, 'json', ['groups' => $serializationGroup . '.create']),
+            $this->serializer->serialize($entity, 'json', ['groups' => $serializationGroup]),
             Response::HTTP_CREATED,
             [],
             true
